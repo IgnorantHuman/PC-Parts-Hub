@@ -1,6 +1,6 @@
 # PC Parts Hub
 
-PC Parts Hub is an online marketplace for buying and selling computer components. It was developed using ASP.NET Core Razor Pages as part of the UCCA3224 Web Application and Technologies assignment.
+PC Parts Hub is an online marketplace for buying and selling computer components. It was developed using ASP.NET Core Razor Pages.
 
 The platform provides different functions for Buyers, Sellers and Administrators. It supports the complete marketplace process, including product submission, administrative approval, product browsing, shopping cart management, checkout, payment simulation, order tracking and product reviews.
 
