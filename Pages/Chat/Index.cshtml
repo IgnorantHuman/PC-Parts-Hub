@@ -1,0 +1,357 @@
+﻿@page
+@model PCShop.Pages.Chat.IndexModel
+
+@{
+    ViewData["Title"] = "Live Chat";
+}
+
+<section class="py-5">
+    <div class="container" style="max-width: 900px;">
+
+        <div class="d-flex flex-wrap justify-content-between
+            align-items-center gap-3 mb-4">
+
+            <div>
+                <span class="text-primary fw-semibold">
+                    SIGNALR
+                </span>
+
+                <h1 class="fw-bold mb-1">
+                    Marketplace Live Chat
+                </h1>
+
+                <p class="text-muted mb-0">
+                    Communicate with Buyers, Sellers and Administrators
+                    in real time.
+                </p>
+            </div>
+
+            <div>
+                <span id="connectionStatus"
+                      class="badge bg-secondary p-2">
+                    Connecting...
+                </span>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-0">
+
+                <div id="messageList"
+                     class="p-4"
+                     aria-live="polite"
+                     style="height: 450px;
+                    overflow-y: auto;
+                    background: var(--bs-light);">
+
+                    <div class="text-center text-muted py-5"
+                         id="emptyMessage">
+
+                        <i class="bi bi-chat-dots display-4"></i>
+
+                        <p class="mt-3 mb-0">
+                            No messages yet. Start the conversation.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="border-top p-4">
+                    <form id="messageForm">
+                        <label for="messageInput"
+                               class="form-label fw-semibold">
+                            Message
+                        </label>
+
+                        <div class="input-group">
+                            <input id="messageInput"
+                                   type="text"
+                                   class="form-control"
+                                   maxlength="500"
+                                   autocomplete="off"
+                                   placeholder="Type your message..."
+                                   disabled />
+
+                            <button id="sendButton"
+                                    type="submit"
+                                    class="btn btn-primary px-4"
+                                    disabled>
+
+                                <i class="bi bi-send me-1"></i>
+                                Send
+                            </button>
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-2">
+                            <small id="chatError"
+                                   class="text-danger">
+                            </small>
+
+                            <small class="text-muted">
+                                Maximum 500 characters
+                            </small>
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="alert alert-info mt-4">
+            <i class="bi bi-info-circle me-1"></i>
+            Messages are displayed live and are not permanently stored.
+        </div>
+
+    </div>
+</section>
+
+@section Scripts {
+    <script src="~/lib/signalr/dist/browser/signalr.min.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+        const messageForm =
+        document.getElementById("messageForm");
+
+        const messageInput =
+        document.getElementById("messageInput");
+
+        const sendButton =
+        document.getElementById("sendButton");
+
+        const messageList =
+        document.getElementById("messageList");
+
+        const connectionStatus =
+        document.getElementById("connectionStatus");
+
+        const chatError =
+        document.getElementById("chatError");
+
+        const emptyMessage =
+        document.getElementById("emptyMessage");
+
+        const connection =
+        new signalR.HubConnectionBuilder()
+        .withUrl("/chatHub")
+        .withAutomaticReconnect()
+        .configureLogging(
+        signalR.LogLevel.Information)
+        .build();
+
+        connection.on(
+        "ReceiveMessage",
+        function (
+        senderName,
+        senderRole,
+        message,
+        sentTime) {
+
+        removeEmptyMessage();
+
+        const card =
+        document.createElement("div");
+
+        card.className =
+        "card border-0 shadow-sm mb-3";
+
+        const body =
+        document.createElement("div");
+
+        body.className = "card-body";
+
+        const header =
+        document.createElement("div");
+
+        header.className =
+        "d-flex flex-wrap justify-content-between gap-2";
+
+        const sender =
+        document.createElement("strong");
+
+        sender.textContent = senderName;
+
+        const role =
+        document.createElement("span");
+
+        role.className =
+        "badge " + getRoleClass(senderRole);
+
+        role.textContent = senderRole;
+
+        const senderArea =
+        document.createElement("div");
+
+        senderArea.className =
+        "d-flex align-items-center gap-2";
+
+        senderArea.appendChild(sender);
+        senderArea.appendChild(role);
+
+        const time =
+        document.createElement("small");
+
+        time.className = "text-muted";
+        time.textContent = sentTime;
+
+        const messageText =
+        document.createElement("p");
+
+        messageText.className =
+        "mb-0 mt-2";
+
+        // textContent prevents HTML/script injection.
+        messageText.textContent = message;
+
+        header.appendChild(senderArea);
+        header.appendChild(time);
+
+        body.appendChild(header);
+        body.appendChild(messageText);
+
+        card.appendChild(body);
+        messageList.appendChild(card);
+
+        scrollToNewestMessage();
+        });
+
+        connection.on(
+        "ReceiveSystemMessage",
+        function (message) {
+
+        removeEmptyMessage();
+
+        const systemMessage =
+        document.createElement("div");
+
+        systemMessage.className =
+        "text-center text-muted small mb-3";
+
+        systemMessage.textContent = message;
+
+        messageList.appendChild(systemMessage);
+
+        scrollToNewestMessage();
+        });
+
+        connection.onreconnecting(function () {
+        setConnectionStatus(
+        "Reconnecting...",
+        "bg-warning text-dark");
+
+        messageInput.disabled = true;
+        sendButton.disabled = true;
+        });
+
+        connection.onreconnected(function () {
+        setConnectionStatus(
+        "Connected",
+        "bg-success");
+
+        messageInput.disabled = false;
+        sendButton.disabled = false;
+        });
+
+        connection.onclose(function () {
+        setConnectionStatus(
+        "Disconnected",
+        "bg-danger");
+
+        messageInput.disabled = true;
+        sendButton.disabled = true;
+        });
+
+        messageForm.addEventListener(
+        "submit",
+        async function (event) {
+
+        event.preventDefault();
+
+        chatError.textContent = "";
+
+        const message =
+        messageInput.value.trim();
+
+        if (!message) {
+        chatError.textContent =
+        "Enter a message.";
+
+        return;
+        }
+
+        try {
+        await connection.invoke(
+        "SendMessage",
+        message);
+
+        messageInput.value = "";
+        messageInput.focus();
+        }
+        catch (error) {
+        chatError.textContent =
+        error.message ??
+        "The message could not be sent.";
+        }
+        });
+
+        async function startConnection() {
+        try {
+        await connection.start();
+
+        setConnectionStatus(
+        "Connected",
+        "bg-success");
+
+        messageInput.disabled = false;
+        sendButton.disabled = false;
+
+        messageInput.focus();
+        }
+        catch (error) {
+        setConnectionStatus(
+        "Connection failed",
+        "bg-danger");
+
+        chatError.textContent =
+        "Unable to connect. Retrying...";
+
+        setTimeout(startConnection, 5000);
+        }
+        }
+
+        function setConnectionStatus(text, className) {
+        connectionStatus.textContent = text;
+        connectionStatus.className =
+        "badge p-2 " + className;
+        }
+
+        function removeEmptyMessage() {
+        if (emptyMessage) {
+        emptyMessage.remove();
+        }
+        }
+
+        function scrollToNewestMessage() {
+        messageList.scrollTop =
+        messageList.scrollHeight;
+        }
+
+        function getRoleClass(role) {
+        if (role === "Admin") {
+        return "bg-danger";
+        }
+
+        if (role === "Seller") {
+        return "bg-warning text-dark";
+        }
+
+        if (role === "Buyer") {
+        return "bg-primary";
+        }
+
+        return "bg-secondary";
+        }
+
+        startConnection();
+        });
+    </script>
+}

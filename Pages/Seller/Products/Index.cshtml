@@ -1,0 +1,170 @@
+@page
+@model PCShop.Pages.Seller.Products.IndexModel
+@using PCPartsHub.Models
+
+@{
+    ViewData["Title"] = "My Listings";
+}
+
+<section class="seller-area py-5">
+    <div class="container">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+            <div>
+                <span class="text-primary fw-semibold">SELLER PRODUCTS</span>
+                <h1 class="fw-bold mb-1">My Listings</h1>
+                <p class="text-muted mb-0">Create products and monitor Admin decisions.</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a asp-page="/Seller/Dashboard" class="btn btn-outline-primary">
+                    <i class="bi bi-arrow-left me-1"></i>Dashboard
+                </a>
+                <a asp-page="./Create" class="btn btn-primary">
+                    <i class="bi bi-plus-circle me-1"></i>Add Product
+                </a>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm seller-card mb-4">
+            <div class="card-body p-4">
+                <form method="get" class="row g-3 align-items-end">
+                    <div class="col-lg-6">
+                        <label asp-for="SearchTerm" class="form-label fw-semibold">Search</label>
+                        <input asp-for="SearchTerm" class="form-control"
+                               placeholder="Product, brand or category..." />
+                    </div>
+                    <div class="col-md-4 col-lg-3">
+                        <label asp-for="StatusFilter" class="form-label fw-semibold">Status</label>
+                        <select asp-for="StatusFilter" class="form-select">
+                            <option value="All">All statuses</option>
+                            <option value="Pending">Pending</option>
+                            <option value="Active">Active</option>
+                            <option value="Rejected">Rejected</option>
+                        </select>
+                    </div>
+                    <div class="col-md-8 col-lg-3 d-flex gap-2">
+                        <button class="btn btn-primary flex-grow-1" type="submit">
+                            <i class="bi bi-funnel me-1"></i>Apply
+                        </button>
+                        <a asp-page="./Index" class="btn btn-outline-secondary">Clear</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <p class="text-muted">Showing <strong>@Model.ProductList.Count</strong> listing(s)</p>
+
+        <div class="card border-0 shadow-sm seller-card overflow-hidden">
+            @if (!Model.ProductList.Any())
+            {
+                <div class="text-center py-5 px-3">
+                    <i class="bi bi-inbox fs-1 text-muted"></i>
+                    <h4 class="mt-3">No listings found</h4>
+                    <p class="text-muted">Create your first PC component listing.</p>
+                    <a asp-page="./Create" class="btn btn-primary">Add Product</a>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Product</th>
+                                <th>Category</th>
+                                <th>Price</th>
+                                <th>Stock</th>
+                                <th>Status</th>
+                                <th>Admin feedback</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        @foreach (Product product in Model.ProductList)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center gap-3">
+                                        @if (!string.IsNullOrWhiteSpace(product.ImagePath))
+                                        {
+                                            <img src="@product.ImagePath" alt="@product.Name"
+                                                 class="seller-list-image" />
+                                        }
+                                        else
+                                        {
+                                            <div class="seller-list-placeholder"><i class="bi bi-cpu"></i></div>
+                                        }
+                                        <div>
+                                            <div class="fw-semibold">@product.Name</div>
+                                            <small class="text-muted">@product.Brand</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>@product.Category</td>
+                                    <td>
+                                        @if (product.IsPromotionActive)
+                                        {
+                                            <div>
+                                                <span class="text-decoration-line-through text-muted small">
+                                                    RM @product.Price.ToString("N2")
+                                                </span>
+                                            </div>
+
+                                            <div class="text-danger fw-bold">
+                                                RM @product.CurrentPrice.ToString("N2")
+                                            </div>
+
+                                            <span class="badge bg-danger">
+                                                @product.DiscountPercentage!.Value.ToString("0.##")% OFF
+                                            </span>
+                                        }
+                                        else if (product.DiscountPercentage.HasValue)
+                                        {
+                                            <div class="fw-semibold">
+                                                RM @product.Price.ToString("N2")
+                                            </div>
+
+                                            <span class="badge bg-secondary">
+                                                Promotion scheduled
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="fw-semibold">
+                                                RM @product.Price.ToString("N2")
+                                            </span>
+                                        }
+                                    </td>
+                                <td>@product.Stock</td>
+                                <td>
+                                    <partial name="_ProductStatus" model="product" />
+                                </td>
+                                <td class="seller-feedback-cell">
+                                    @if (product.Status == ProductStatus.Rejected)
+                                    {
+                                        <span class="text-danger">@product.RejectionReason</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">—</span>
+                                    }
+                                </td>
+                                <td class="text-end text-nowrap">
+                                    <a asp-page="./Details" asp-route-id="@product.Id"
+                                       class="btn btn-sm btn-outline-primary">View</a>
+                                    <a asp-page="./Edit" asp-route-id="@product.Id"
+                                       class="btn btn-sm btn-warning">Edit</a>
+                                    @if (product.Status == ProductStatus.Pending)
+                                    {
+                                        <a asp-page="./Delete" asp-route-id="@product.Id"
+                                           class="btn btn-sm btn-danger">Delete</a>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</section>

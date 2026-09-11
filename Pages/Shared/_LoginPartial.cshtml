@@ -1,0 +1,64 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using PCPartsHub.Models
+
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+
+@{
+    ApplicationUser? currentUser = null;
+    if (SignInManager.IsSignedIn(User))
+    {
+        currentUser = await UserManager.GetUserAsync(User);
+    }
+}
+
+<ul class="navbar-nav align-items-lg-center gap-lg-1 ms-auto account-navbar">
+    @if (SignInManager.IsSignedIn(User))
+    {
+        @if (User.IsInRole("Buyer"))
+        {
+            <li class="nav-item"><a class="nav-link text-light d-flex align-items-center gap-1" asp-page="/Cart/Index"><i class="bi bi-cart3"></i><span>Cart</span></a></li>
+            <li class="nav-item"><a class="nav-link text-light d-flex align-items-center gap-1" asp-page="/Buyer/Orders/Index"><i class="bi bi-bag"></i><span>My Orders</span></a></li>
+        }
+
+        <li class="nav-item dropdown ms-lg-1">
+            <a class="nav-link dropdown-toggle user-menu-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                <span class="user-avatar"><i class="bi bi-person-fill"></i></span>
+                <span class="user-menu-name">@(currentUser?.FullName ?? User.Identity?.Name)</span>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end pc-user-dropdown">
+                <li class="px-3 py-2">
+                    <small class="text-muted d-block">Signed in as</small>
+                    <strong class="d-block text-truncate">@User.Identity?.Name</strong>
+                    @if (User.IsInRole("Admin")) { <span class="badge bg-danger mt-2">Admin</span> }
+                    else if (User.IsInRole("Seller")) { <span class="badge bg-warning text-dark mt-2">Seller</span> }
+                    else { <span class="badge bg-primary mt-2">Buyer</span> }
+                </li>
+                <li><hr class="dropdown-divider" /></li>
+                <li><a class="dropdown-item" asp-area="Identity" asp-page="/Account/Manage/Index"><i class="bi bi-person-gear"></i>Manage Account</a></li>
+                <li><hr class="dropdown-divider" /></li>
+                <li>
+                    <form asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Page("/Index")" method="post">
+                        <button type="submit" class="dropdown-item text-danger"><i class="bi bi-box-arrow-right"></i>Logout</button>
+                    </form>
+                </li>
+            </ul>
+        </li>
+    }
+    else
+    {
+        <li class="nav-item me-lg-2">
+            <a class="nav-link text-light" asp-area="Identity" asp-page="/Account/Login">
+                <i class="bi bi-box-arrow-in-right me-1"></i>
+                Login
+            </a>
+        </li>
+
+        <li class="nav-item">
+            <a class="btn btn-light btn-sm register-button" asp-area="Identity" asp-page="/Account/Register">
+                <i class="bi bi-person-plus me-1"></i>
+                Register
+            </a>
+        </li>
+    }
+</ul>

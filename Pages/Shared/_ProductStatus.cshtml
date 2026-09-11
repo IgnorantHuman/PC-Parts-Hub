@@ -1,0 +1,56 @@
+﻿@model PCPartsHub.Models.Product
+@using PCPartsHub.Models
+
+<div class="listing-status">
+
+    @switch (Model.Status)
+    {
+        case ProductStatus.Pending:
+
+            <span class="badge rounded-pill
+                bg-warning text-dark">
+
+                <i class="bi bi-hourglass-split me-1"></i>
+                Pending
+            </span>
+
+            <small class="status-description
+                text-warning-emphasis">
+
+                Waiting for Admin review
+            </small>
+
+            break;
+
+        case ProductStatus.Active:
+
+            <span class="badge rounded-pill bg-success">
+
+                <i class="bi bi-check-circle me-1"></i>
+                Active
+            </span>
+
+            <small class="status-description text-success">
+
+                Visible to Buyers
+            </small>
+
+            break;
+
+        case ProductStatus.Rejected:
+
+            <span class="badge rounded-pill bg-danger">
+
+                <i class="bi bi-x-circle me-1"></i>
+                Rejected
+            </span>
+
+            <small class="status-description text-danger">
+
+                Action required
+            </small>
+
+            break;
+    }
+
+</div>

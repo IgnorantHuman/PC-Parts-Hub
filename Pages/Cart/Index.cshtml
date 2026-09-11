@@ -1,0 +1,160 @@
+@page
+@model PCShop.Pages.Cart.IndexModel
+@{
+    ViewData["Title"] = "Shopping Cart";
+}
+
+<div class="container py-5" id="shoppingCart">
+    <h2 class="fw-bold mb-4">Shopping Cart</h2>
+
+    @if (!Model.CartItems.Any())
+    {
+        <div class="card p-5 text-center border-0 shadow-sm">
+            <i class="bi bi-cart-x display-3 text-muted mb-3"></i>
+            <h4>Your cart is empty</h4>
+            <p class="text-muted">Explore the catalog and add computer components to get started.</p>
+            <div>
+                <a asp-page="/Index" class="btn btn-primary px-4">Browse Components</a>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <div class="card border-0 shadow-sm">
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Item</th>
+                                    <th>Price</th>
+                                    <th style="width: 130px;">Quantity</th>
+                                    <th>Subtotal</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model.CartItems)
+                                {
+                                    <tr data-cart-item-id="@item.Id">
+                                        <td>
+                                            <div class="d-flex align-items-center gap-3">
+                                                <img src="@(item.Product?.ImagePath ?? "/favicon.ico")"
+                                                     alt="@item.Product?.Name"
+                                                     style="width: 50px; height: 50px; object-fit: contain;" />
+                                                <div>
+                                                    <div class="fw-semibold">@item.Product?.Name</div>
+                                                    <small class="text-muted">@item.Product?.Brand</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            @if (item.Product?.IsPromotionActive == true)
+                                            {
+                                                <div>
+                                                    <span class="text-decoration-line-through text-muted small">
+                                                        RM @item.Product.Price.ToString("N2")
+                                                    </span>
+                                                </div>
+
+                                                <span class="text-danger fw-bold">
+                                                    RM @item.Product.CurrentPrice.ToString("N2")
+                                                </span>
+
+                                                <div>
+                                                    <span class="badge bg-danger">
+                                                        @item.Product.DiscountPercentage!.Value.ToString("0.##")% OFF
+                                                    </span>
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <span>
+                                                    RM @(item.Product?.Price.ToString("N2"))
+                                                </span>
+                                            }
+                                        </td>
+                                        <td>
+                                            <form method="post" asp-page-handler="UpdateQuantity" class="d-flex ajax-cart-update">
+                                                <input type="hidden" name="cartItemId" value="@item.Id" />
+                                                <input type="number" name="quantity" value="@item.Quantity"
+                                                       min="1" max="@item.Product?.Stock"
+                                                       class="form-control form-control-sm"
+                                                       onchange="this.form.submit()" />
+                                            </form>
+                                        </td>
+                                        <td class="fw-semibold item-subtotal">
+                                            RM @(((
+                                                    item.Product?.CurrentPrice ?? 0) *
+                                                    item.Quantity).ToString("N2"))
+                                        </td>
+                                        <td>
+                                            <form method="post" asp-page-handler="Remove" class="ajax-cart-remove">
+                                                <input type="hidden" name="cartItemId" value="@item.Id" />
+                                                <button type="submit" class="btn btn-sm text-danger border-0">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card border-0 shadow-sm p-4">
+                    <h5 class="fw-bold mb-3">Order Summary</h5>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Items Total</span>
+                        <span class="fw-semibold cart-total">RM @Model.Subtotal.ToString("N2")</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-3">
+                        <span>Shipping</span>
+                        <span class="text-success fw-semibold">FREE</span>
+                    </div>
+                    <hr />
+                    <div class="d-flex justify-content-between fs-5 fw-bold mb-4">
+                        <span>Total</span>
+                        <span class="text-primary cart-total">RM @Model.Subtotal.ToString("N2")</span>
+                    </div>
+                    <a asp-page="/Checkout/Index" class="btn btn-primary w-100 py-2">
+                        Proceed to Checkout
+                    </a>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+<script>
+    $(function () {
+        function submitCartForm(form) {
+            const $form = $(form);
+            $.ajax({
+                url: $form.attr("action"), method: "POST", data: $form.serialize(), dataType: "json",
+                headers: { "X-Requested-With": "XMLHttpRequest" }
+            }).done(function (result) {
+                if (!result.success) return;
+                if ($form.hasClass("ajax-cart-remove")) $form.closest("tr").fadeOut(180, function () { $(this).remove(); });
+                result.items.forEach(function (item) {
+                    const row = $('[data-cart-item-id="' + item.id + '"]');
+                    row.find('input[name="quantity"]').val(item.quantity);
+                    row.find(".item-subtotal").text("RM " + Number(item.subtotal).toFixed(2));
+                });
+                $(".cart-total").text("RM " + Number(result.total).toFixed(2));
+                if (result.cartCount === 0) window.location.reload();
+            }).fail(function () { alert("The cart could not be updated. Please try again."); });
+        }
+
+        $(document).on("change", ".ajax-cart-update input[name='quantity']", function () { submitCartForm(this.form); });
+        $(document).on("submit", ".ajax-cart-update, .ajax-cart-remove", function (event) {
+            event.preventDefault(); submitCartForm(this);
+        });
+    });
+</script>
+}

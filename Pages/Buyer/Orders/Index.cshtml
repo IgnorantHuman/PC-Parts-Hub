@@ -1,0 +1,86 @@
+@page
+@model PCShop.Pages.Buyer.Orders.IndexModel
+@{
+    ViewData["Title"] = "My Orders";
+}
+
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold mb-0">My Orders</h2>
+        <a asp-page="/Index" class="btn btn-outline-primary">
+            <i class="bi bi-arrow-left me-1"></i> Continue Shopping
+        </a>
+    </div>
+
+    @if (!Model.Orders.Any())
+    {
+        <div class="card border-0 shadow-sm p-5 text-center">
+            <i class="bi bi-bag-x display-3 text-muted mb-3"></i>
+            <h4>No orders placed yet</h4>
+            <p class="text-muted">You have not completed any purchases yet.</p>
+            <div>
+                <a asp-page="/Index" class="btn btn-primary px-4">Explore Products</a>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="d-flex flex-column gap-4">
+            @foreach (var order in Model.Orders)
+            {
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-light d-flex flex-wrap justify-content-between align-items-center py-3">
+                        <div class="d-flex flex-wrap gap-4">
+                            <div>
+                                <small class="text-muted d-block">Order Placed</small>
+                                <span class="fw-semibold">@order.OrderDate.ToString("dd MMM yyyy, hh:mm tt")</span>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block">Total</small>
+                                <span class="fw-semibold text-primary">RM @order.TotalAmount.ToString("N2")</span>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block">Status</small>
+                                <span class="badge bg-primary">@order.Status</span>
+                                <span class="badge @(order.PaymentStatus == "Completed" ? "bg-success" : "bg-warning text-dark") ms-1">
+                                    Payment: @order.PaymentStatus
+                                </span>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block">Recipient</small>
+                                <span class="fw-semibold">@order.RecipientName</span>
+                            </div>
+                        </div>
+                        <div class="text-muted fw-bold">
+                            Order #@order.Id
+                        </div>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="text-muted small mb-3">
+                            <i class="bi bi-geo-alt me-1"></i> @order.ShippingAddress, @order.PostalCode @order.City &nbsp;|&nbsp; 
+                            <i class="bi bi-telephone me-1"></i> @order.PhoneNumber
+                        </div>
+                        <hr class="text-muted my-2" />
+                        @foreach (var item in order.OrderItems)
+                        {
+                            <div class="d-flex align-items-center justify-content-between py-2 border-bottom">
+                                <div class="d-flex align-items-center gap-3">
+                                    <img src="@(item.Product?.ImagePath ?? "/favicon.ico")"
+                                         alt="@item.Product?.Name"
+                                         style="width: 55px; height: 55px; object-fit: contain;" />
+                                    <div>
+                                        <div class="fw-semibold">@item.Product?.Name</div>
+                                        <small class="text-muted">Quantity: @item.Quantity &times; RM @item.UnitPrice.ToString("N2")</small>
+                                    </div>
+                                </div>
+                                <div class="fw-semibold">
+                                    RM @((item.UnitPrice * item.Quantity).ToString("N2"))
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

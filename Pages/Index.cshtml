@@ -1,0 +1,971 @@
+﻿@page
+@model PCShop.Pages.IndexModel
+@using PCPartsHub.Models
+@using System.Net
+@using System.Text.RegularExpressions
+
+@{
+    ViewData["Title"] = "Home";
+}
+
+<!-- HERO SECTION -->
+<section class="hero-section">
+
+    <div class="container">
+
+        <div class="row align-items-center">
+
+            <div class="col-lg-7">
+
+                <span class="hero-badge">
+
+                    <i class="bi bi-shield-check me-1"></i>
+                    Admin-approved PC components
+
+                </span>
+
+                <h1 class="hero-title">
+
+                    Build PC with
+
+                    <span id="rotatingText"
+                          class="rotating-text">
+                          build speed
+
+                    </span>
+
+                </h1>
+
+                <p class="hero-description">
+
+                    Browse processors, graphics cards, memory,
+                    storage, motherboards and other PC components
+                    from marketplace Sellers.
+
+                </p>
+
+                <div class="d-flex flex-wrap gap-3">
+
+                    <a href="#componentPreview"
+                       class="btn btn-light btn-lg
+                              hero-button scroll-link">
+
+                        <i class="bi bi-search me-2"></i>
+                        Browse Components
+
+                    </a>
+
+                    @if (User.Identity?.IsAuthenticated != true)
+                    {
+                        <a asp-area="Identity"
+                           asp-page="/Account/Register"
+                           class="btn btn-outline-light btn-lg
+                                  hero-button">
+
+                            <i class="bi bi-person-plus me-2"></i>
+                            Create Account
+
+                        </a>
+                    }
+                    else if (User.IsInRole("Admin"))
+                    {
+                        <a asp-page="/Admin/Dashboard"
+                           class="btn btn-outline-light btn-lg
+                                  hero-button">
+
+                            <i class="bi bi-speedometer2 me-2"></i>
+                            Admin Dashboard
+
+                        </a>
+                    }
+                    else if (User.IsInRole("Seller"))
+                    {
+                        <a asp-page="/Seller/Dashboard"
+                           class="btn btn-outline-light btn-lg
+                                  hero-button">
+
+                            <i class="bi bi-shop me-2"></i>
+                            Seller Dashboard
+
+                        </a>
+                    }
+                    else
+                    {
+                        <a asp-area="Identity"
+                           asp-page="/Account/Manage/Index"
+                           class="btn btn-outline-light btn-lg
+                                  hero-button">
+
+                            <i class="bi bi-person-circle me-2"></i>
+                            My Account
+
+                        </a>
+                    }
+
+                </div>
+
+            </div>
+
+            <div class="col-lg-5 text-center mt-5 mt-lg-0">
+
+                <div class="hero-icon-box">
+
+                    <i class="bi bi-pc-display-horizontal"></i>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- PRODUCT PREVIEW SECTION -->
+<section id="componentPreview"
+         class="preview-section reveal-section">
+
+    <div class="container">
+
+        <div class="text-center mb-5">
+
+            <span class="section-label">
+                PC COMPONENT MARKETPLACE
+            </span>
+
+            <h2 class="section-title">
+                Browse Available Components
+            </h2>
+
+            <p class="section-description">
+
+                Search and filter PC components that have been
+                reviewed and approved by an Administrator.
+
+            </p>
+
+        </div>
+
+
+        <!-- SEARCH AND FILTER -->
+        <div class="filter-toolbar">
+
+            <div class="row g-3 align-items-center">
+
+                <div class="col-lg-5">
+
+                    <div class="input-group">
+
+                        <span class="input-group-text">
+
+                            <i class="bi bi-search"></i>
+
+                        </span>
+
+                        <input type="text"
+                               id="productSearch"
+                               class="form-control"
+                               placeholder="Search component or brand..." />
+
+                        <button type="button"
+                                id="clearSearch"
+                                class="btn btn-outline-secondary">
+
+                            Clear
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+                <div class="col-lg-7">
+
+                    <div class="filter-buttons">
+
+                        <button type="button"
+                                class="filter-button active"
+                                data-filter="all">
+
+                            All
+
+                        </button>
+
+                        @foreach (string category in Model.Categories)
+                        {
+                            <button type="button"
+                                    class="filter-button"
+                                    data-filter="@category.ToLowerInvariant()">
+
+                                @category
+
+                            </button>
+                        }
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- PRODUCT COUNT AND WISHLIST COUNT -->
+        <div class="d-flex flex-wrap
+                    justify-content-between
+                    align-items-center gap-2 mb-3">
+
+            <p class="text-muted mb-0">
+
+                Showing
+
+                <strong id="visibleProductCount">
+                    @Model.Products.Count
+                </strong>
+
+                component(s)
+
+            </p>
+
+            <small class="text-muted">
+
+                <i class="bi bi-broadcast-pin me-1"></i>
+
+                Live approved count:
+
+                <strong id="liveActiveProductCount">
+                    @Model.Products.Count
+                </strong>
+
+                <span id="liveCountStatus" class="visually-hidden">
+                    Loaded
+                </span>
+
+            </small>
+
+            <small class="text-muted">
+
+                <i class="bi bi-heart me-1"></i>
+
+                Wishlist items:
+
+                <strong id="wishlistCount">
+                    0
+                </strong>
+
+            </small>
+
+        </div>
+
+
+        <!-- PRODUCTS -->
+        <div class="row g-4"
+             id="productContainer">
+
+            @foreach (Product product in Model.Products)
+            {
+                string iconClass = product.Category switch
+                {
+                    "CPU" => "bi-cpu",
+                    "GPU" => "bi-gpu-card",
+                    "RAM" => "bi-memory",
+                    "Storage" => "bi-device-ssd",
+                    "Motherboard" => "bi-motherboard",
+                    "Power Supply" => "bi-plug",
+                    "Monitor" => "bi-display",
+                    "PC Case" => "bi-pc",
+                    "CPU Cooler" => "bi-fan",
+                    _ => "bi-pc-display-horizontal"
+                };
+
+                string symbolClass = product.Category switch
+                {
+                    "CPU" => "cpu-symbol",
+                    "GPU" => "gpu-symbol",
+                    "RAM" => "ram-symbol",
+                    "Storage" => "storage-symbol",
+                    _ => "cpu-symbol"
+                };
+
+                string plainDescription = WebUtility.HtmlDecode(
+                    Regex.Replace(product.Description, "<[^>]+>", " "));
+                plainDescription = Regex.Replace(plainDescription, @"\s+", " ").Trim();
+                string shortDescription =
+                    plainDescription.Length > 130
+                        ? plainDescription[..130] + "..."
+                        : plainDescription;
+
+                <div class="col-md-6 col-xl-4 product-preview"
+                     data-category="@product.Category.ToLowerInvariant()"
+                     data-name="@($"{product.Name} {product.Brand} {product.Category}")">
+
+                    <div class="preview-card h-100">
+
+                        @if (!string.IsNullOrWhiteSpace(
+                            product.ImagePath))
+                        {
+                            <div class="text-center mb-3">
+
+                                <img src="@product.ImagePath"
+                                     alt="@product.Name"
+                                     class="img-fluid rounded"
+                                     style="width: 100%;
+                                            height: 190px;
+                                            object-fit: contain;" />
+
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="component-symbol @symbolClass">
+
+                                <i class="bi @iconClass"></i>
+
+                            </div>
+                        }
+
+                        <span class="product-category">
+
+                            @product.Category
+
+                        </span>
+
+                        <h3>
+                            @product.Name
+                        </h3>
+
+                        <p class="product-brand">
+                            @product.Brand
+                        </p>
+
+                        <p>
+                            @shortDescription
+                        </p>
+
+                        <div class="d-flex flex-wrap gap-2 mb-3">
+
+                            <span class="badge bg-light text-dark border">
+
+                                <i class="bi bi-box me-1"></i>
+                                @product.Condition
+
+                            </span>
+
+                            @if (product.Stock > 0)
+                            {
+                                <span class="badge bg-success">
+
+                                    @product.Stock in stock
+
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger">
+
+                                    Out of stock
+
+                                </span>
+                            }
+
+                        </div>
+
+                        <div class="product-bottom">
+
+                            @if (product.IsPromotionActive)
+                            {
+                                <div>
+                                    <span class="text-decoration-line-through text-muted me-2">
+                                        RM @product.Price.ToString("N2")
+                                    </span>
+
+                                    <span class="text-danger fw-bold">
+                                        RM @product.CurrentPrice.ToString("N2")
+                                    </span>
+                                </div>
+
+                                <span class="badge bg-danger mt-2">
+                                    @product.DiscountPercentage!.Value.ToString("0.##")% OFF
+                                </span>
+                            }
+                            else
+                            {
+                                <span>
+                                    RM @product.Price.ToString("N2")
+                                </span>
+                            }
+
+                            <button type="button"
+                                    class="btn btn-outline-primary
+                                           btn-sm preview-button"
+                                    data-product="@product.Name"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#quickViewModal-@product.Id">
+
+                                Quick View
+
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+            }
+
+        </div>
+
+
+        <!-- NO PRODUCTS MESSAGE -->
+        <div id="noProducts"
+             class="no-products text-center py-5">
+
+            <i class="bi bi-search display-4 text-muted"></i>
+
+            <h3 class="mt-3">
+                No components found
+            </h3>
+
+            <p class="text-muted">
+
+                Try another product name or category.
+
+            </p>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- ONE QUICK VIEW MODAL FOR EACH PRODUCT -->
+@foreach (Product product in Model.Products)
+{
+    <div class="modal fade"
+         id="quickViewModal-@product.Id"
+         tabindex="-1"
+         aria-labelledby="quickViewTitle-@product.Id"
+         aria-hidden="true">
+
+        <div class="modal-dialog
+                    modal-dialog-centered
+                    modal-lg">
+
+            <div class="modal-content">
+
+                <div class="modal-header">
+
+                    <h2 class="modal-title fs-5"
+                        id="quickViewTitle-@product.Id">
+
+                        Component Quick View
+
+                    </h2>
+
+                    <button type="button"
+                            class="btn-close"
+                            data-bs-dismiss="modal"
+                            aria-label="Close">
+                    </button>
+
+                </div>
+
+                <div class="modal-body p-4">
+
+                    <div class="row g-4 align-items-center">
+
+                        <div class="col-md-5 text-center">
+
+                            @if (!string.IsNullOrWhiteSpace(
+                                product.ImagePath))
+                            {
+                                <img src="@product.ImagePath"
+                                     alt="@product.Name"
+                                     class="img-fluid rounded"
+                                     style="width: 100%;
+                                            max-height: 280px;
+                                            object-fit: contain;" />
+                            }
+                            else
+                            {
+                                <div class="modal-component-icon">
+
+                                    <i class="bi bi-pc-display-horizontal"></i>
+
+                                </div>
+                            }
+
+                        </div>
+
+                        <div class="col-md-7">
+
+                            <span class="badge bg-primary mb-2">
+
+                                @product.Category
+
+                            </span>
+
+                            <h3 class="fw-bold">
+                                @product.Name
+                            </h3>
+
+                            <p class="text-muted mb-2">
+                                Brand: @product.Brand
+                            </p>
+
+                            <div class="mb-3">
+                                @if (product.IsPromotionActive)
+                                {
+                                    <div>
+                                        <span class="text-decoration-line-through text-muted me-2">
+                                            RM @product.Price.ToString("N2")
+                                        </span>
+
+                                        <span class="text-danger fw-bold fs-4">
+                                            RM @product.CurrentPrice.ToString("N2")
+                                        </span>
+                                    </div>
+
+                                    <span class="badge bg-danger mt-2">
+                                        @product.DiscountPercentage!.Value.ToString("0.##")% OFF
+                                    </span>
+
+                                    <div class="small text-muted mt-2">
+                                        Promotion ends:
+                                        @product.PromotionEnd!.Value.ToString(
+                                            "dd MMM yyyy, hh:mm tt")
+                                    </div>
+                                }
+                                else
+                                {
+                                    <h4 class="text-primary fw-bold">
+                                        RM @product.Price.ToString("N2")
+                                    </h4>
+                                }
+                            </div>
+
+                            <div class="mt-3 product-description">
+                                @Html.Raw(product.Description)
+                            </div>
+
+                            <div class="row g-2 mt-3">
+
+                                <div class="col-6">
+
+                                    <div class="border rounded p-2">
+
+                                        <small class="text-muted">
+                                            Condition
+                                        </small>
+
+                                        <div class="fw-semibold">
+                                            @product.Condition
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="col-6">
+
+                                    <div class="border rounded p-2">
+
+                                        <small class="text-muted">
+                                            Stock
+                                        </small>
+
+                                        <div class="fw-semibold">
+                                            @product.Stock unit(s)
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                            <p class="small text-muted mt-3 mb-0">
+
+                                <i class="bi bi-shop me-1"></i>
+
+                                Seller:
+                                @(product.Seller?.FullName
+                                    ?? "Marketplace Seller")
+
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+
+                    <button type="button"
+                            class="btn btn-secondary"
+                            data-bs-dismiss="modal">
+
+                        Close
+
+                    </button>
+
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <a asp-page="/Products/Details"
+                           asp-route-id="@product.Id"
+                           class="btn btn-primary">
+
+                            <i class="bi bi-eye me-1"></i>
+                            View Full Details
+
+                        </a>
+                    }
+                    else
+                    {
+                        <a asp-area="Identity"
+                           asp-page="/Account/Login"
+                           asp-route-returnUrl="@Url.Page(
+                               "/Products/Details",
+                               new { id = product.Id })"
+                           class="btn btn-primary">
+
+                            <i class="bi bi-box-arrow-in-right me-1"></i>
+                            Login to View Details
+
+                        </a>
+                    }
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+}
+
+
+<!-- CATEGORIES SECTION -->
+<section class="category-section">
+
+    <div class="container">
+
+        <div class="text-center mb-5">
+
+            <span class="section-label">
+                PRODUCT CATEGORIES
+            </span>
+
+            <h2 class="section-title">
+                Find the parts you need
+            </h2>
+
+            <p class="section-description">
+
+                Explore popular PC component categories
+                for your next computer build.
+
+            </p>
+
+        </div>
+
+        <div class="row g-4">
+
+            <div class="col-sm-6 col-lg-3">
+
+                <div class="category-card h-100">
+
+                    <div class="category-icon">
+                        <i class="bi bi-cpu"></i>
+                    </div>
+
+                    <h3>Processors</h3>
+
+                    <p>
+
+                        Find Intel and AMD processors for gaming,
+                        studying and professional work.
+
+                    </p>
+
+                </div>
+
+            </div>
+
+            <div class="col-sm-6 col-lg-3">
+
+                <div class="category-card h-100">
+
+                    <div class="category-icon">
+                        <i class="bi bi-gpu-card"></i>
+                    </div>
+
+                    <h3>Graphics Cards</h3>
+
+                    <p>
+
+                        Browse graphics cards for gaming,
+                        editing and other workloads.
+
+                    </p>
+
+                </div>
+
+            </div>
+
+            <div class="col-sm-6 col-lg-3">
+
+                <div class="category-card h-100">
+
+                    <div class="category-icon">
+                        <i class="bi bi-memory"></i>
+                    </div>
+
+                    <h3>Memory</h3>
+
+                    <p>
+
+                        Upgrade your computer with DDR4
+                        and DDR5 memory modules.
+
+                    </p>
+
+                </div>
+
+            </div>
+
+            <div class="col-sm-6 col-lg-3">
+
+                <div class="category-card h-100">
+
+                    <div class="category-icon">
+                        <i class="bi bi-device-ssd"></i>
+                    </div>
+
+                    <h3>Storage</h3>
+
+                    <p>
+
+                        Choose SSD, NVMe and hard disk
+                        storage for your files and applications.
+
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- FEATURES SECTION -->
+<section class="feature-section">
+
+    <div class="container">
+
+        <div class="row g-4">
+
+            <div class="col-md-4">
+
+                <div class="feature-item">
+
+                    <i class="bi bi-patch-check-fill"></i>
+
+                    <div>
+
+                        <h3>Approved Listings</h3>
+
+                        <p>
+
+                            Products are reviewed by an Administrator
+                            before becoming visible.
+
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="col-md-4">
+
+                <div class="feature-item">
+
+                    <i class="bi bi-shop"></i>
+
+                    <div>
+
+                        <h3>Marketplace Sellers</h3>
+
+                        <p>
+
+                            Sellers can submit and manage their own
+                            PC component listings.
+
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="col-md-4">
+
+                <div class="feature-item">
+
+                    <i class="bi bi-cart-check-fill"></i>
+
+                    <div>
+
+                        <h3>Simple Purchasing</h3>
+
+                        <p>
+
+                            Buyers can browse products and prepare
+                            components for checkout.
+
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- FAQ SECTION -->
+<section class="faq-section reveal-section">
+
+    <div class="container">
+
+        <div class="text-center mb-5">
+
+            <span class="section-label">
+                FREQUENTLY ASKED QUESTIONS
+            </span>
+
+            <h2 class="section-title">
+                How PC Parts Hub Works
+            </h2>
+
+        </div>
+
+        <div class="accordion mx-auto"
+             id="marketplaceFaq">
+
+            <div class="accordion-item">
+
+                <h2 class="accordion-header">
+
+                    <button class="accordion-button"
+                            type="button"
+                            data-bs-toggle="collapse"
+                            data-bs-target="#faqOne">
+
+                        How does a Seller list a product?
+
+                    </button>
+
+                </h2>
+
+                <div id="faqOne"
+                     class="accordion-collapse collapse show"
+                     data-bs-parent="#marketplaceFaq">
+
+                    <div class="accordion-body">
+
+                        A Seller creates a listing containing the
+                        product name, category, description, price,
+                        stock and images. The listing starts with
+                        Pending status.
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="accordion-item">
+
+                <h2 class="accordion-header">
+
+                    <button class="accordion-button collapsed"
+                            type="button"
+                            data-bs-toggle="collapse"
+                            data-bs-target="#faqTwo">
+
+                        Why must an Admin approve a listing?
+
+                    </button>
+
+                </h2>
+
+                <div id="faqTwo"
+                     class="accordion-collapse collapse"
+                     data-bs-parent="#marketplaceFaq">
+
+                    <div class="accordion-body">
+
+                        Admin approval helps ensure that product
+                        information is suitable before it becomes
+                        visible to Buyers.
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="accordion-item">
+
+                <h2 class="accordion-header">
+
+                    <button class="accordion-button collapsed"
+                            type="button"
+                            data-bs-toggle="collapse"
+                            data-bs-target="#faqThree">
+
+                        Does this website collect real payments?
+
+                    </button>
+
+                </h2>
+
+                <div id="faqThree"
+                     class="accordion-collapse collapse"
+                     data-bs-parent="#marketplaceFaq">
+
+                    <div class="accordion-body">
+
+                        No. This academic project uses a simulated
+                        checkout and does not collect real payment
+                        information.
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>

@@ -1,0 +1,269 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>@ViewData["Title"] - PC Parts Hub</title>
+
+    <link rel="stylesheet"
+          href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+
+    <link rel="stylesheet"
+          href="~/css/site.css"
+          asp-append-version="true" />
+</head>
+
+<body class="d-flex flex-column min-vh-100">
+
+    <header>
+        <nav class="navbar navbar-expand-xl navbar-dark pc-navbar shadow-sm">
+            <div class="container-xl">
+
+                <a class="navbar-brand fw-bold"
+                   asp-area=""
+                   asp-page="/Index">
+
+                    <span class="brand-icon"><i class="bi bi-cpu-fill"></i></span>
+                    <span>PC Parts Hub</span>
+                </a>
+
+                <button class="navbar-toggler"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#mainNavbar">
+
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="mainNavbar">
+
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+
+                        <li class="nav-item">
+                            <a class="nav-link"
+                               asp-area=""
+                               asp-page="/Index">
+
+                                <i class="bi bi-house-door me-1"></i>
+                                Home
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link"
+                               asp-area=""
+                               asp-page="/Privacy">
+
+                                <i class="bi bi-shield-check me-1"></i>
+                                Privacy
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+
+                            <a class="nav-link"
+                               asp-area=""
+                               asp-page="/Tools/CurrencyConverter">
+
+                                <i class="bi bi-currency-exchange me-1"></i>
+                                Currency Converter
+
+                            </a>
+
+                        </li>
+
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                    <i class="bi bi-shield-lock me-1"></i>Admin
+                                </a>
+                                <ul class="dropdown-menu pc-nav-dropdown">
+                                    <li><a class="dropdown-item" asp-page="/Admin/Dashboard"><i class="bi bi-speedometer2"></i>Dashboard</a></li>
+                                    <li><a class="dropdown-item" asp-page="/Admin/Products/Index"><i class="bi bi-box-seam"></i>Manage Listings</a></li>
+                                    <li><a class="dropdown-item" asp-page="/Admin/Actions"><i class="bi bi-clock-history"></i>Action History</a></li>
+                                </ul>
+                            </li>
+
+                        }
+
+                        @if (User.IsInRole("Seller"))
+                        {
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                    <i class="bi bi-shop me-1"></i>Seller Centre
+                                </a>
+                                <ul class="dropdown-menu pc-nav-dropdown">
+                                    <li><a class="dropdown-item" asp-page="/Seller/Dashboard"><i class="bi bi-speedometer2"></i>Dashboard</a></li>
+                                    <li><a class="dropdown-item" asp-page="/Seller/Products/Index"><i class="bi bi-box-seam"></i>My Listings</a></li>
+                                    <li><a class="dropdown-item" asp-page="/Seller/Products/Create"><i class="bi bi-plus-circle"></i>Add Product</a></li>
+                                </ul>
+                            </li>
+                        }
+
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link"
+                                   asp-area=""
+                                   asp-page="/Notifications/Index">
+
+                                    <i class="bi bi-bell me-1"></i>
+                                    Notifications
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link"
+                                   asp-area=""
+                                   asp-page="/Chat/Index">
+
+                                    <i class="bi bi-chat-dots me-1"></i>
+                                    Live Chat
+                                </a>
+                            </li>
+                        }
+
+                    </ul>
+
+                    <button type="button"
+                            id="themeToggle"
+                            class="btn theme-toggle me-lg-3"
+                            title="Change theme"
+                            aria-label="Change theme">
+
+                        <i id="themeIcon"
+                           class="bi bi-moon-stars-fill">
+                        </i>
+
+                    </button>
+
+                    <partial name="_LoginPartial" />
+
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="flex-grow-1">
+
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="container mt-3">
+                <div class="alert alert-success alert-dismissible fade show">
+                    @TempData["SuccessMessage"]
+
+                    <button type="button"
+                            class="btn-close"
+                            data-bs-dismiss="alert">
+                    </button>
+                </div>
+            </div>
+        }
+
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="container mt-3">
+                <div class="alert alert-danger alert-dismissible fade show">
+                    @TempData["ErrorMessage"]
+
+                    <button type="button"
+                            class="btn-close"
+                            data-bs-dismiss="alert">
+                    </button>
+                </div>
+            </div>
+        }
+
+        @RenderBody()
+
+    </main>
+
+    <footer class="pc-footer mt-auto">
+        <div class="container">
+            <div class="row align-items-center">
+
+                <div class="col-md-6">
+                    <h5 class="mb-1">
+                        <i class="bi bi-cpu me-2"></i>
+                        PC Parts Hub
+                    </h5>
+
+                    <p class="footer-text mb-0">
+                        A trusted marketplace for PC components.
+                    </p>
+                </div>
+
+                <div class="col-md-6 text-md-end mt-3 mt-md-0">
+                    <a asp-page="/Index">Home</a>
+                    <a asp-page="/Privacy">Privacy</a>
+
+                    <p class="footer-text mt-2 mb-0">
+                        &copy; @DateTime.Now.Year PC Parts Hub
+                    </p>
+                </div>
+
+            </div>
+        </div>
+    </footer>
+
+    <div class="toast-container position-fixed top-0 end-0 p-3">
+
+        <div id="wishlistToast"
+             class="toast"
+             role="alert"
+             aria-live="assertive"
+             aria-atomic="true">
+
+            <div class="toast-header">
+
+                <i class="bi bi-heart-fill text-danger me-2"></i>
+
+                <strong class="me-auto">
+                    Wishlist
+                </strong>
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="toast">
+                </button>
+
+            </div>
+
+            <div class="toast-body"
+                 id="wishlistToastMessage">
+
+                Product added to your wishlist.
+
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Back to Top button -->
+    <button type="button"
+            id="backToTop"
+            class="back-to-top"
+            title="Back to top"
+            aria-label="Back to top">
+
+        <i class="bi bi-arrow-up"></i>
+
+    </button>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script src="~/js/site.js"
+            asp-append-version="true">
+    </script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+
+</body>
+</html>

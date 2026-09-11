@@ -1,0 +1,270 @@
+﻿@page "{id:int}"
+@model PCShop.Pages.Products.DetailsModel
+@using PCPartsHub.Models
+
+@{
+    ViewData["Title"] = Model.Product.Name;
+}
+
+<section class="py-5">
+    <div class="container">
+
+        <a asp-page="/Index"
+           asp-fragment="componentPreview"
+           class="btn btn-outline-secondary mb-4">
+            <i class="bi bi-arrow-left me-1"></i>
+            Back to Components
+        </a>
+
+        @if (!string.IsNullOrEmpty(Model.StatusMessage))
+        {
+            <div class="alert alert-info alert-dismissible fade show mb-4" role="alert">
+                @Model.StatusMessage
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4 p-lg-5">
+
+                <div class="row g-5">
+
+                    <div class="col-lg-5">
+
+                        @if (!string.IsNullOrWhiteSpace(Model.Product.ImagePath))
+                        {
+                            <img src="@Model.Product.ImagePath"
+                                 alt="@Model.Product.Name"
+                                 class="img-fluid rounded w-100"
+                                 style="max-height: 420px; object-fit: contain;" />
+                        }
+                        else
+                        {
+                            <div class="bg-light rounded d-flex flex-column align-items-center justify-content-center"
+                                 style="height: 380px;">
+                                <i class="bi bi-pc-display-horizontal display-1 text-primary"></i>
+                                <p class="text-muted mt-3">
+                                    No product image
+                                </p>
+                            </div>
+                        }
+
+                        @if (Model.Product.ProductImages.Count > 1)
+                        {
+                            <div class="row g-2 mt-2">
+                                @foreach (ProductImage image in Model.Product.ProductImages)
+                                {
+                                    <div class="col-4">
+                                        <img src="@image.ImagePath"
+                                             alt="@Model.Product.Name"
+                                             class="img-fluid rounded border"
+                                             style="height: 100px; width: 100%; object-fit: cover;" />
+                                    </div>
+                                }
+                            </div>
+                        }
+
+                    </div>
+
+                    <div class="col-lg-7">
+
+                        <span class="badge bg-primary rounded-pill mb-3">
+                            @Model.Product.Category
+                        </span>
+
+                        <h1 class="fw-bold">
+                            @Model.Product.Name
+                        </h1>
+
+                        <p class="text-muted fs-5">
+                            @Model.Product.Brand
+                        </p>
+
+                        <div class="my-4">
+                            @if (Model.Product.IsPromotionActive)
+                            {
+                                <div class="d-flex flex-wrap align-items-center gap-2">
+                                    <span class="text-decoration-line-through text-muted fs-5">
+                                        RM @Model.Product.Price.ToString("N2")
+                                    </span>
+
+                                    <span class="text-danger fw-bold fs-2">
+                                        RM @Model.Product.CurrentPrice.ToString("N2")
+                                    </span>
+
+                                    <span class="badge bg-danger">
+                                        @Model.Product.DiscountPercentage!.Value.ToString("0.##")% OFF
+                                    </span>
+                                </div>
+
+                                <div class="alert alert-danger mt-3 mb-0">
+                                    <i class="bi bi-clock me-1"></i>
+
+                                    Promotion ends on
+                                    <strong>
+                                        @Model.Product.PromotionEnd!.Value.ToString(
+                                            "dd MMM yyyy, hh:mm tt")
+                                    </strong>
+                                </div>
+                            }
+                            else
+                            {
+                                <h2 class="text-primary fw-bold mb-0">
+                                    RM @Model.Product.Price.ToString("N2")
+                                </h2>
+                            }
+                        </div>
+
+                        <div class="row g-3 mb-4">
+
+                            <div class="col-sm-6">
+                                <div class="border rounded p-3">
+                                    <small class="text-muted">
+                                        Condition
+                                    </small>
+
+                                    <div class="fw-semibold">
+                                        @Model.Product.Condition
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-sm-6">
+                                <div class="border rounded p-3">
+                                    <small class="text-muted">
+                                        Available Stock
+                                    </small>
+
+                                    <div class="fw-semibold">
+                                        @Model.Product.Stock unit(s)
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <h5 class="fw-bold">Description</h5>
+
+                        <div class="text-muted product-description">
+                            @Html.Raw(Model.Product.Description)
+                        </div>
+
+                        <hr />
+
+                        <div class="d-flex align-items-center gap-3">
+
+                            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center"
+                                 style="width: 48px; height: 48px;">
+                                <i class="bi bi-shop"></i>
+                            </div>
+
+                            <div>
+                                <small class="text-muted">
+                                    Sold by
+                                </small>
+
+                                <div class="fw-semibold">
+                                    @(Model.Product.Seller?.FullName ?? "Marketplace Seller")
+                                </div>
+                            </div>
+
+                        </div>
+
+                        @if (Model.Product.Stock > 0)
+                        {
+                            <form method="post" asp-page-handler="AddToCart" asp-route-id="@Model.Product.Id" class="mt-4">
+                                <div class="d-flex flex-wrap align-items-end gap-3">
+                                    <div style="max-width: 120px;">
+                                        <label asp-for="Quantity" class="form-label small text-muted mb-1">Quantity</label>
+                                        <input asp-for="Quantity" type="number" class="form-control" value="1" min="1" max="@Model.Product.Stock" />
+                                    </div>
+
+                                    <button type="submit" class="btn btn-primary px-4">
+                                        <i class="bi bi-cart-plus me-1"></i> Add to Cart
+                                    </button>
+
+                                    <button type="button" class="btn btn-outline-danger">
+                                        <i class="bi bi-heart me-1"></i> Add to Wishlist
+                                    </button>
+                                </div>
+                            </form>
+                        }
+                        else
+                        {
+                            <div class="alert alert-warning d-flex align-items-center gap-2 mt-4 mb-0" role="alert">
+                                <i class="bi bi-exclamation-triangle-fill"></i>
+                                <div>This item is currently out of stock.</div>
+                            </div>
+                        }
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="pb-5">
+    <div class="container">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4 p-lg-5">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h3 class="fw-bold mb-0">Customer Reviews</h3>
+                    @if (Model.Product.Reviews.Any())
+                    {
+                        <span class="badge bg-warning text-dark fs-6">
+                            ★ @Model.Product.Reviews.Average(r => r.Rating).ToString("0.0") / 5
+                        </span>
+                    }
+                </div>
+
+                @if (Model.CanReview)
+                {
+                    <form method="post" asp-page-handler="Review" asp-route-id="@Model.Product.Id" class="border rounded p-3 mb-4">
+                        <h5 class="fw-semibold">Write a verified purchase review</h5>
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <label asp-for="ReviewForm.Rating" class="form-label">Rating</label>
+                                <select asp-for="ReviewForm.Rating" class="form-select">
+                                    <option value="5">5 - Excellent</option><option value="4">4 - Good</option>
+                                    <option value="3">3 - Average</option><option value="2">2 - Poor</option>
+                                    <option value="1">1 - Very poor</option>
+                                </select>
+                            </div>
+                            <div class="col-md-9">
+                                <label asp-for="ReviewForm.Comment" class="form-label">Comment</label>
+                                <textarea asp-for="ReviewForm.Comment" class="form-control" rows="3"></textarea>
+                                <span asp-validation-for="ReviewForm.Comment" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary mt-3" type="submit">Submit Review</button>
+                    </form>
+                }
+
+                @if (!Model.Product.Reviews.Any())
+                {
+                    <p class="text-muted mb-0">No customer reviews yet.</p>
+                }
+                else
+                {
+                    @foreach (Review review in Model.Product.Reviews.OrderByDescending(r => r.CreatedAt))
+                    {
+                        <article class="border-top py-3">
+                            <div class="d-flex justify-content-between">
+                                <strong>@(review.Buyer?.FullName ?? "Verified Buyer")</strong>
+                                <span class="text-warning">@(new string('★', review.Rating))<span class="text-muted">@(new string('☆', 5 - review.Rating))</span></span>
+                            </div>
+                            <small class="text-muted">Verified purchase · @review.CreatedAt.ToString("dd MMM yyyy")</small>
+                            <p class="mb-0 mt-2">@review.Comment</p>
+                        </article>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,0 +1,204 @@
+@page "{id:int}"
+@model PCShop.Pages.Seller.Products.EditModel
+
+@{
+    ViewData["Title"] = "Edit Product";
+}
+
+<section class="seller-area py-5">
+    <div class="container seller-form-container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <span class="text-primary fw-semibold">EDIT LISTING</span>
+                <h1 class="fw-bold mb-1">@Model.Product.Name</h1>
+                <p class="text-muted mb-0">Saving changes returns this listing to Pending.</p>
+            </div>
+            <a asp-page="./Index" class="btn btn-outline-primary">Back</a>
+        </div>
+
+        <div class="card seller-card border-0 shadow-sm mb-4">
+            <div class="card-body p-4">
+                <h4 class="fw-bold mb-3">Current Images</h4>
+                <div class="row g-3">
+                    @foreach (var image in Model.ExistingImages)
+                    {
+                        <div class="col-6 col-md-4">
+                            <div class="seller-edit-image-card">
+                                <img src="@image.ImagePath" alt="Product image" />
+                                @if (image.ImagePath == Model.Product.ImagePath)
+                                {
+                                    <span class="badge bg-success">Cover</span>
+                                }
+                                <div class="d-flex flex-wrap gap-2 mt-2">
+                                    @if (image.ImagePath != Model.Product.ImagePath)
+                                    {
+                                        <form method="post" asp-page-handler="SetCover">
+                                            <input type="hidden" name="imageId" value="@image.ProductImageId" />
+                                            <input type="hidden" name="productId" value="@Model.Product.Id" />
+                                            <button class="btn btn-sm btn-outline-primary" type="submit">Set cover</button>
+                                        </form>
+                                    }
+                                    <form method="post" asp-page-handler="DeleteImage"
+                                          onsubmit="return confirm('Delete this image?');">
+                                        <input type="hidden" name="imageId" value="@image.ProductImageId" />
+                                        <input type="hidden" name="productId" value="@Model.Product.Id" />
+                                        <button class="btn btn-sm btn-outline-danger" type="submit">Delete</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="card seller-card border-0 shadow-sm">
+            <div class="card-body p-4 p-lg-5">
+                <form method="post" enctype="multipart/form-data">
+                    <input type="hidden" asp-for="Product.Id" />
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                    <div class="row g-4">
+                        <div class="col-md-8">
+                            <label asp-for="Product.Name" class="form-label fw-semibold"></label>
+                            <input asp-for="Product.Name" class="form-control" />
+                            <span asp-validation-for="Product.Name" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="Product.Brand" class="form-label fw-semibold"></label>
+                            <input asp-for="Product.Brand" class="form-control" />
+                            <span asp-validation-for="Product.Brand" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="Product.Category" class="form-label fw-semibold"></label>
+                            <select asp-for="Product.Category" asp-items="Model.CategoryOptions" class="form-select"></select>
+                            <span asp-validation-for="Product.Category" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="Product.Condition" class="form-label fw-semibold"></label>
+                            <select asp-for="Product.Condition" asp-items="Model.ConditionOptions" class="form-select"></select>
+                            <span asp-validation-for="Product.Condition" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="Product.Price" class="form-label fw-semibold"></label>
+                            <div class="input-group"><span class="input-group-text">RM</span><input asp-for="Product.Price" class="form-control" /></div>
+                            <span asp-validation-for="Product.Price" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="Product.Stock" class="form-label fw-semibold"></label>
+                            <input asp-for="Product.Stock" class="form-control" />
+                            <span asp-validation-for="Product.Stock" class="text-danger"></span>
+                        </div>
+                        <div class="col-12">
+                            <label asp-for="Product.Description" class="form-label fw-semibold"></label>
+                            <textarea asp-for="Product.Description" class="form-control" rows="6"></textarea>
+                            <span asp-validation-for="Product.Description" class="text-danger"></span>
+                        </div>
+                        <div class="col-12">
+                            <label asp-for="UploadImages" class="form-label fw-semibold">Upload More Images</label>
+                            <input asp-for="UploadImages" type="file" class="form-control"
+                                   accept=".jpg,.jpeg,.png,.webp" multiple />
+                            <div class="form-text">Maximum five images in total and 5 MB for each image.</div>
+                            <span asp-validation-for="UploadImages" class="text-danger"></span>
+                        </div>
+                        <div class="col-12">
+                            <hr />
+
+                            <h4 class="fw-bold">
+                                <i class="bi bi-percent me-2"></i>
+                                Product Promotion
+                            </h4>
+
+                            <p class="text-muted">
+                                Leave these fields empty when the product has no promotion.
+                            </p>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label asp-for="Product.DiscountPercentage"
+                                   class="form-label fw-semibold">
+                            </label>
+
+                            <div class="input-group">
+                                <input asp-for="Product.DiscountPercentage"
+                                       class="form-control"
+                                       min="1"
+                                       max="90"
+                                       step="0.01" />
+
+                                <span class="input-group-text">%</span>
+                            </div>
+
+                            <span asp-validation-for="Product.DiscountPercentage"
+                                  class="text-danger">
+                            </span>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label asp-for="Product.PromotionStart"
+                                   class="form-label fw-semibold">
+                            </label>
+
+                            <input asp-for="Product.PromotionStart"
+                                   type="datetime-local"
+                                   asp-format="{0:yyyy-MM-ddTHH:mm}"
+                                   class="form-control" />
+
+                            <span asp-validation-for="Product.PromotionStart"
+                                  class="text-danger">
+                            </span>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label asp-for="Product.PromotionEnd"
+                                   class="form-label fw-semibold">
+                            </label>
+
+                            <input asp-for="Product.PromotionEnd"
+                                   type="datetime-local"
+                                   asp-format="{0:yyyy-MM-ddTHH:mm}"
+                                   class="form-control" />
+
+                            <span asp-validation-for="Product.PromotionEnd"
+                                  class="text-danger">
+                            </span>
+                        </div>
+                    </div>
+
+                    <hr class="my-4" />
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="bi bi-save me-2"></i>Save Changes
+                    </button>
+                    <a asp-page="./Index" class="btn btn-outline-secondary btn-lg ms-2">Cancel</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script src="https://cdn.jsdelivr.net/npm/tinymce@7/tinymce.min.js"></script>
+
+    <script>
+        tinymce.init({
+        selector: "#Product_Description",
+        license_key: "gpl",
+        menubar: false,
+        height: 280,
+        plugins: "lists link",
+        toolbar: "undo redo | bold italic underline | bullist numlist | link | removeformat",
+        branding: false,
+        promotion: false
+        });
+
+        document.querySelector("form")?.addEventListener(
+        "submit",
+        function () {
+        tinymce.triggerSave();
+        },
+        true
+        );
+    </script>
+}

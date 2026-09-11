@@ -1,0 +1,13 @@
+@page
+@model PCShop.Pages.Checkout.PayPalCancelModel
+@{
+    ViewData["Title"] = "Payment Cancelled";
+}
+<div class="container py-5 text-center">
+    <div class="card border-0 shadow-sm p-5 mx-auto" style="max-width: 560px;">
+        <i class="bi bi-x-circle-fill text-warning display-1 mb-3"></i>
+        <h2 class="fw-bold">Payment cancelled</h2>
+        <p class="text-muted">No payment was collected and your items remain in the cart.</p>
+        <a asp-page="/Cart/Index" class="btn btn-primary">Return to Cart</a>
+    </div>
+</div>

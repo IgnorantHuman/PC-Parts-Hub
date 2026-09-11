@@ -1,0 +1,186 @@
+@page "{id:int}"
+@model PCShop.Pages.Seller.Products.DetailsModel
+@using PCPartsHub.Models
+
+@{
+    ViewData["Title"] = "Product Details";
+}
+
+<section class="seller-area py-5">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <span class="text-primary fw-semibold">LISTING DETAILS</span>
+                <h1 class="fw-bold mb-0">@Model.Product.Name</h1>
+            </div>
+            <a asp-page="./Index" class="btn btn-outline-primary">Back to Listings</a>
+        </div>
+
+        <div class="card seller-card border-0 shadow-sm">
+            <div class="card-body p-4 p-lg-5">
+                <div class="row g-5">
+                    <div class="col-lg-5">
+                        @if (Model.Product.ProductImages.Any())
+                        {
+                            <img src="@(Model.Product.ImagePath ?? Model.Product.ProductImages.First().ImagePath)" alt="@Model.Product.Name"
+                                 class="seller-detail-main-image" id="sellerMainImage" />
+                            <div class="seller-thumbnail-row mt-3">
+                                @foreach (ProductImage image in Model.Product.ProductImages)
+                                {
+                                    <button type="button" class="seller-thumbnail"
+                                            data-image="@image.ImagePath" aria-label="View product image">
+                                        <img src="@image.ImagePath" alt="@Model.Product.Name" />
+                                    </button>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="seller-detail-placeholder"><i class="bi bi-cpu"></i>No image available</div>
+                        }
+                    </div>
+
+                    <div class="col-lg-7">
+                        <div class="d-flex justify-content-between gap-3">
+                            <div>
+                                <div class="text-primary fw-semibold">@Model.Product.Category</div>
+                                <h2 class="fw-bold">@Model.Product.Name</h2>
+                                <p class="text-muted">@Model.Product.Brand</p>
+                            </div>
+                            <div>
+                                <partial name="_ProductStatus" model="Model.Product" />
+                            </div>
+                        </div>
+
+                        <div class="product-detail-grid my-4">
+                            <div class="detail-item">
+                                <span>Price</span>
+
+                                @if (Model.Product.IsPromotionActive)
+                                {
+                                    <div>
+                                        <span class="text-decoration-line-through text-muted">
+                                            RM @Model.Product.Price.ToString("N2")
+                                        </span>
+
+                                        <strong class="text-danger d-block">
+                                            RM @Model.Product.CurrentPrice.ToString("N2")
+                                        </strong>
+
+                                        <span class="badge bg-danger">
+                                            @Model.Product.DiscountPercentage!.Value.ToString("0.##")% OFF
+                                        </span>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <strong>
+                                        RM @Model.Product.Price.ToString("N2")
+                                    </strong>
+                                }
+                            </div>
+                            <div class="detail-item"><span>Stock</span><strong>@Model.Product.Stock unit(s)</strong></div>
+                            <div class="detail-item"><span>Condition</span><strong>@Model.Product.Condition</strong></div>
+                            <div class="detail-item"><span>Submitted</span><strong>@Model.Product.CreatedAt.ToString("dd MMM yyyy")</strong></div>
+                            @if (Model.Product.DiscountPercentage.HasValue)
+                            {
+                                <div class="alert alert-info mt-3">
+                                    <div>
+                                        <strong>Promotion:</strong>
+                                        @Model.Product.DiscountPercentage.Value.ToString("0.##")% discount
+                                    </div>
+
+                                    <div>
+                                        <strong>Start:</strong>
+                                        @Model.Product.PromotionStart?.ToString(
+                                            "dd MMM yyyy, hh:mm tt")
+                                    </div>
+
+                                    <div>
+                                        <strong>End:</strong>
+                                        @Model.Product.PromotionEnd?.ToString(
+                                            "dd MMM yyyy, hh:mm tt")
+                                    </div>
+
+                                    <div>
+                                        <strong>Status:</strong>
+
+                                        @if (Model.Product.IsPromotionActive)
+                                        {
+                                            <span class="badge bg-success">Active now</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">Not active</span>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        </div>
+
+
+                        <h5 class="fw-bold">Description</h5>
+                        <div class="text-muted seller-description">
+                            @Html.Raw(Model.Product.Description)
+                        </div>
+
+                        @if (Model.Product.Status == ProductStatus.Rejected)
+                        {
+                            <div class="alert alert-danger mt-4">
+
+                                <h6 class="fw-bold">
+
+                                    <i class="bi bi-exclamation-triangle me-1"></i>
+                                    This listing requires changes
+                                </h6>
+
+                                <p class="mb-2">
+                                    <strong>Admin reason:</strong>
+                                </p>
+
+                                <p class="mb-3">
+                                    @Model.Product.RejectionReason
+                                </p>
+
+                                <a asp-page="./Edit"
+                                   asp-route-id="@Model.Product.Id"
+                                   class="btn btn-danger">
+
+                                    <i class="bi bi-pencil me-1"></i>
+                                    Edit and Resubmit
+                                </a>
+
+                            </div>
+                        }
+
+                        <div class="d-flex flex-wrap gap-2 mt-4">
+                            <a asp-page="./Edit" asp-route-id="@Model.Product.Id" class="btn btn-warning">
+                                <i class="bi bi-pencil me-1"></i>Edit Listing
+                            </a>
+                            @if (Model.Product.Status == ProductStatus.Pending)
+                            {
+                                <a asp-page="./Delete" asp-route-id="@Model.Product.Id" class="btn btn-outline-danger">
+                                    <i class="bi bi-trash me-1"></i>Delete
+                                </a>
+                            }
+                        </div>
+                        <p class="small text-muted mt-3 mb-0">
+                            Editing a listing sends it back to Pending for another Admin review.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        document.querySelectorAll(".seller-thumbnail").forEach(button => {
+            button.addEventListener("click", () => {
+                const mainImage = document.getElementById("sellerMainImage");
+                if (mainImage) mainImage.src = button.dataset.image;
+            });
+        });
+    </script>
+}

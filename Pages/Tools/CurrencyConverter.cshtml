@@ -1,0 +1,161 @@
+﻿@page
+@model PCShop.Pages.Tools.CurrencyConverterModel
+
+@{
+    ViewData["Title"] = "Currency Converter";
+}
+
+<div class="container py-5">
+
+    <div class="row justify-content-center">
+
+        <div class="col-lg-7">
+
+            <div class="text-center mb-4">
+
+                <i class="bi bi-currency-exchange
+                    display-4 text-primary">
+                </i>
+
+                <h1 class="fw-bold mt-3">
+                    Live Currency Converter
+                </h1>
+
+                <p class="text-muted">
+                    Convert Malaysian Ringgit using an external
+                    exchange-rate web service.
+                </p>
+
+            </div>
+
+            <div class="card border-0 shadow">
+
+                <div class="card-body p-4">
+
+                    <form method="post">
+
+                        <div asp-validation-summary="ModelOnly"
+                             class="text-danger mb-3">
+                        </div>
+
+                        <div class="row g-3">
+
+                            <div class="col-md-6">
+
+                                <label asp-for="Amount"
+                                       class="form-label fw-semibold">
+                                    Amount in MYR
+                                </label>
+
+                                <div class="input-group">
+
+                                    <span class="input-group-text">
+                                        RM
+                                    </span>
+
+                                    <input asp-for="Amount"
+                                           class="form-control"
+                                           step="0.01" />
+
+                                </div>
+
+                                <span asp-validation-for="Amount"
+                                      class="text-danger">
+                                </span>
+
+                            </div>
+
+                            <div class="col-md-6">
+
+                                <label asp-for="TargetCurrency"
+                                       class="form-label fw-semibold">
+                                    Convert to
+                                </label>
+
+                                <select asp-for="TargetCurrency"
+                                        class="form-select">
+
+                                    @foreach (var currency in Model.Currencies)
+                                    {
+                                        <option value="@currency.Code">
+                                            @currency.Code -
+                                            @currency.Name
+                                        </option>
+                                    }
+
+                                </select>
+
+                                <span asp-validation-for="TargetCurrency"
+                                      class="text-danger">
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                        <button type="submit"
+                                class="btn btn-primary w-100 mt-4">
+
+                            <i class="bi bi-arrow-repeat me-2"></i>
+                            Get Live Conversion
+
+                        </button>
+
+                    </form>
+
+                    @if (Model.ConvertedAmount.HasValue)
+                    {
+                        <div class="alert alert-success
+                            text-center mt-4 mb-0">
+
+                            <p class="mb-1">
+                                Converted amount
+                            </p>
+
+                            <h2 class="fw-bold">
+                                @Model.TargetCurrency
+                                @Model.ConvertedAmount.Value.ToString("N2")
+                            </h2>
+
+                            <p class="mb-0">
+                                1 MYR =
+                                @Model.ExchangeRate?.ToString("N6")
+                                @Model.TargetCurrency
+                            </p>
+
+                            <small>
+                                Rate date: @Model.RateDate
+                            </small>
+
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrWhiteSpace(Model.ApiError))
+                    {
+                        <div class="alert alert-warning mt-4 mb-0">
+
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            @Model.ApiError
+
+                        </div>
+                    }
+
+                </div>
+
+            </div>
+
+            <p class="text-center text-muted small mt-3">
+                Exchange rates are provided by the external
+                Frankfurter REST API.
+            </p>
+
+        </div>
+
+    </div>
+
+</div>
+
+@section Scripts
+{
+    <partial name="_ValidationScriptsPartial" />
+}

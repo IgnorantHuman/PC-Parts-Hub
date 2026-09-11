@@ -1,0 +1,297 @@
+﻿@page
+@model PCShop.Pages.Admin.ActionsModel
+@using PCPartsHub.Models
+
+@{
+    ViewData["Title"] = "Admin Action History";
+}
+
+<section class="admin-actions py-5">
+    <div class="container">
+
+        <div class="d-flex flex-wrap justify-content-between
+            align-items-center gap-3 mb-4">
+
+            <div>
+                <span class="text-primary fw-semibold">
+                    ADMIN ACTIVITY
+                </span>
+
+                <h1 class="fw-bold mb-1">
+                    Action History
+                </h1>
+
+                <p class="text-muted mb-0">
+                    View all product approvals and rejections.
+                </p>
+            </div>
+
+            <a asp-page="/Admin/Dashboard"
+               class="btn btn-outline-primary">
+
+                <i class="bi bi-arrow-left me-2"></i>
+                Dashboard
+            </a>
+        </div>
+
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body p-4">
+
+                <form method="get"
+                      class="row g-3 align-items-end">
+
+                    <div class="col-lg-6">
+
+                        <label asp-for="SearchTerm"
+                               class="form-label fw-semibold">
+
+                            Search history
+                        </label>
+
+                        <div class="input-group">
+
+                            <span class="input-group-text bg-white">
+                                <i class="bi bi-search"></i>
+                            </span>
+
+                            <input asp-for="SearchTerm"
+                                   class="form-control"
+                                   placeholder="Product, Admin or reason..." />
+
+                        </div>
+                    </div>
+
+                    <div class="col-md-5 col-lg-3">
+
+                        <label asp-for="ActionFilter"
+                               class="form-label fw-semibold">
+
+                            Action
+                        </label>
+
+                        <select asp-for="ActionFilter"
+                                class="form-select">
+
+                            <option value="All">All actions</option>
+                            <option value="Approved">Approved</option>
+                            <option value="Rejected">Rejected</option>
+
+                        </select>
+                    </div>
+
+                    <div class="col-md-7 col-lg-3">
+
+                        <div class="d-flex gap-2">
+
+                            <button type="submit"
+                                    class="btn btn-primary flex-grow-1">
+
+                                <i class="bi bi-funnel me-1"></i>
+                                Apply
+                            </button>
+
+                            <a asp-page="./Actions"
+                               class="btn btn-outline-secondary">
+
+                                Clear
+                            </a>
+
+                        </div>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-between
+            align-items-center mb-3">
+
+            <p class="text-muted mb-0">
+                Showing
+                <strong>@Model.ActionList.Count</strong>
+                action(s)
+            </p>
+
+            <div class="d-flex gap-2">
+
+                <a asp-page="./Actions"
+                   asp-route-actionFilter="Approved"
+                   class="btn btn-sm btn-outline-success">
+
+                    Approved
+                </a>
+
+                <a asp-page="./Actions"
+                   asp-route-actionFilter="Rejected"
+                   class="btn btn-sm btn-outline-danger">
+
+                    Rejected
+                </a>
+
+                <a asp-page="./Actions"
+                   asp-route-actionFilter="All"
+                   class="btn btn-sm btn-outline-secondary">
+
+                    All
+                </a>
+
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm overflow-hidden">
+
+            @if (Model.ActionList.Count == 0)
+            {
+                <div class="text-center py-5 px-3">
+
+                    <div class="admin-empty-icon">
+                        <i class="bi bi-clock-history"></i>
+                    </div>
+
+                    <h4 class="mt-3">
+                        No Admin actions found
+                    </h4>
+
+                    <p class="text-muted">
+                        Approval and rejection history will appear here.
+                    </p>
+
+                    <a asp-page="/Admin/Products/Index"
+                       asp-route-statusFilter="Pending"
+                       class="btn btn-primary">
+
+                        Review Pending Listings
+                    </a>
+
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+
+                    <table class="table table-hover align-middle mb-0">
+
+                        <thead class="table-light">
+                            <tr>
+                                <th>Product</th>
+                                <th>Administrator</th>
+                                <th>Action</th>
+                                <th>Reason</th>
+                                <th>Date and Time</th>
+                                <th class="text-end">Details</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            @foreach (AdminAction action in Model.ActionList)
+                            {
+                                <tr>
+
+                                    <td>
+                                        <div class="fw-semibold">
+                                            @(action.Product?.Name
+                                                ?? "Deleted Product")
+                                        </div>
+
+                                        <small class="text-muted">
+                                            Product ID: @action.ProductId
+                                        </small>
+                                    </td>
+
+                                    <td>
+                                        <div>
+                                            @(action.Admin?.FullName
+                                                ?? "Unknown Admin")
+                                        </div>
+
+                                        <small class="text-muted">
+                                            @action.Admin?.Email
+                                        </small>
+                                    </td>
+
+                                    <td>
+                                        @if (action.Action == "Approved")
+                                        {
+                                            <span class="badge rounded-pill
+                                                bg-success">
+
+                                                <i class="bi bi-check-circle me-1"></i>
+                                                Approved
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge rounded-pill
+                                                bg-danger">
+
+                                                <i class="bi bi-x-circle me-1"></i>
+                                                Rejected
+                                            </span>
+                                        }
+                                    </td>
+
+                                    <td class="action-reason">
+
+                                        @if (string.IsNullOrWhiteSpace(
+                                                action.Reason))
+                                        {
+                                            <span class="text-muted">
+                                                No reason required
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            @action.Reason
+                                        }
+
+                                    </td>
+
+                                    <td>
+                                        <div>
+                                            @action.ActionDate.ToString(
+                                                "dd MMM yyyy")
+                                        </div>
+
+                                        <small class="text-muted">
+                                            @action.ActionDate.ToString(
+                                                "hh:mm tt")
+                                        </small>
+                                    </td>
+
+                                    <td class="text-end">
+
+                                        @if (action.Product != null)
+                                        {
+                                            <a asp-page="/Admin/Products/Details"
+                                               asp-route-id="@action.ProductId"
+                                               class="btn btn-sm
+                                                btn-outline-primary">
+
+                                                <i class="bi bi-eye me-1"></i>
+                                                View
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <button type="button"
+                                                    class="btn btn-sm
+                                                btn-outline-secondary"
+                                                    disabled>
+
+                                                Unavailable
+                                            </button>
+                                        }
+
+                                    </td>
+                                </tr>
+                            }
+
+                        </tbody>
+                    </table>
+                </div>
+            }
+
+        </div>
+    </div>
+</section>

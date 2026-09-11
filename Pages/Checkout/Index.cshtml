@@ -1,0 +1,196 @@
+@page
+@model PCShop.Pages.Checkout.IndexModel
+@{
+    ViewData["Title"] = "Checkout";
+}
+
+<div class="container py-5">
+    <h2 class="fw-bold mb-4">Checkout</h2>
+    <div class="row g-5">
+        <div class="col-md-7">
+            <div class="card border-0 shadow-sm p-4">
+                <form method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                    <h5 class="fw-bold mb-3">Shipping Details</h5>
+
+                    <div class="mb-3">
+                        <label asp-for="Order.RecipientName" class="form-label"></label>
+                        <input asp-for="Order.RecipientName" class="form-control" required />
+                        <span asp-validation-for="Order.RecipientName" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="Order.PhoneNumber" class="form-label"></label>
+                        <input asp-for="Order.PhoneNumber" class="form-control" placeholder="e.g. 012-3456789" required />
+                        <span asp-validation-for="Order.PhoneNumber" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="Order.ShippingAddress" class="form-label"></label>
+                        <input asp-for="Order.ShippingAddress" class="form-control" placeholder="Street address and unit number" required />
+                        <span asp-validation-for="Order.ShippingAddress" class="text-danger"></span>
+                    </div>
+                    <div class="row g-2 mb-4">
+                        <div class="col-sm-6">
+                            <label asp-for="Order.City" class="form-label"></label>
+                            <input asp-for="Order.City" class="form-control" required />
+                            <span asp-validation-for="Order.City" class="text-danger"></span>
+                        </div>
+                        <div class="col-sm-6">
+                            <label asp-for="Order.PostalCode" class="form-label"></label>
+                            <input asp-for="Order.PostalCode" class="form-control" required />
+                            <span asp-validation-for="Order.PostalCode" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <hr />
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <h5 class="fw-bold mb-0">Demo Payment</h5>
+                        <span class="badge bg-warning text-dark">SIMULATION ONLY</span>
+                    </div>
+                    <p class="small text-muted">No external payment service is used. Do not enter real payment details.</p>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-sm-4">
+                            <input asp-for="PaymentMethod" class="btn-check" type="radio" value="Card" id="payCard" />
+                            <label class="btn btn-outline-primary w-100" for="payCard"><i class="bi bi-credit-card me-1"></i> Card</label>
+                        </div>
+                        <div class="col-sm-4">
+                            <input asp-for="PaymentMethod" class="btn-check" type="radio" value="FPX" id="payFpx" />
+                            <label class="btn btn-outline-primary w-100" for="payFpx"><i class="bi bi-bank me-1"></i> FPX</label>
+                        </div>
+                        <div class="col-sm-4">
+                            <input asp-for="PaymentMethod" class="btn-check" type="radio" value="EWallet" id="payWallet" />
+                            <label class="btn btn-outline-primary w-100" for="payWallet"><i class="bi bi-wallet2 me-1"></i> eWallet</label>
+                        </div>
+
+                        <div class="col-sm-6">
+                            <input asp-for="PaymentMethod"
+                                   class="btn-check"
+                                   type="radio"
+                                   value="DemoPay"
+                                   id="payDemo" />
+
+                            <label class="btn btn-outline-success w-100"
+                                   for="payDemo">
+                                <i class="bi bi-lightning-charge me-1"></i>
+                                Quick Demo Pay
+                            </label>
+                        </div>
+                    </div>
+                    <span asp-validation-for="PaymentMethod" class="text-danger"></span>
+
+                    <div id="cardFields" class="payment-panel border rounded p-3 mb-3">
+                        <div class="mb-2">
+                            <label asp-for="CardNumber" class="form-label">Demo Card Number</label>
+                            <input asp-for="CardNumber" class="form-control" inputmode="numeric" maxlength="19" placeholder="4111 1111 1111 1111" />
+                            <span asp-validation-for="CardNumber" class="text-danger"></span>
+                        </div>
+                        <div class="mb-2">
+                            <label asp-for="CardHolder" class="form-label">Cardholder Name</label>
+                            <input asp-for="CardHolder" class="form-control" placeholder="TEST BUYER" />
+                            <span asp-validation-for="CardHolder" class="text-danger"></span>
+                        </div>
+                        <div class="row g-2">
+                            <div class="col-7">
+                                <label asp-for="CardExpiry" class="form-label">Expiry</label>
+                                <input asp-for="CardExpiry" class="form-control" maxlength="5" placeholder="12/30" />
+                                <span asp-validation-for="CardExpiry" class="text-danger"></span>
+                            </div>
+                            <div class="col-5">
+                                <label asp-for="CardCvv" class="form-label">CVV</label>
+                                <input asp-for="CardCvv" class="form-control" type="password" inputmode="numeric" maxlength="3" placeholder="123" />
+                                <span asp-validation-for="CardCvv" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="fpxFields" class="payment-panel border rounded p-3 mb-3 d-none">
+                        <label asp-for="BankName" class="form-label">Select Demo Bank</label>
+                        <select asp-for="BankName" class="form-select">
+                            <option value="">-- Select bank --</option>
+                            <option>Maybank2u</option>
+                            <option>CIMB Clicks</option>
+                            <option>Public Bank</option>
+                            <option>RHB Now</option>
+                        </select>
+                        <span asp-validation-for="BankName" class="text-danger"></span>
+                    </div>
+
+                    <div id="walletFields" class="payment-panel border rounded p-3 mb-3 d-none">
+                        <label asp-for="EWalletName" class="form-label">Select Demo eWallet</label>
+                        <select asp-for="EWalletName" class="form-select">
+                            <option value="">-- Select eWallet --</option>
+                            <option>Touch 'n Go eWallet</option>
+                            <option>GrabPay</option>
+                            <option>Boost</option>
+                            <option>ShopeePay</option>
+                        </select>
+                        <span asp-validation-for="EWalletName" class="text-danger"></span>
+                    </div>
+                    <div id="demoPayFields"
+                         class="payment-panel border border-success rounded p-3 mb-3 d-none">
+
+                        <div class="text-center">
+                            <i class="bi bi-lightning-charge-fill text-success display-5"></i>
+
+                            <h6 class="fw-bold mt-2">Quick Demo Payment</h6>
+
+                            <p class="text-muted mb-0">
+                                No payment information is required.
+                                Click the button below to simulate a successful payment.
+                            </p>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 py-2 fs-5">
+                        <i class="bi bi-shield-check me-2"></i>Complete Demo Payment (RM @Model.TotalAmount.ToString("N2"))
+                    </button>
+                    <p class="small text-muted text-center mt-2 mb-0">Classroom demonstration only. No real money will be charged.</p>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-md-5">
+            <div class="card border-0 shadow-sm p-4">
+                <h5 class="fw-bold mb-3">Order Summary</h5>
+                <ul class="list-group list-group-flush mb-3">
+                    @foreach (var item in Model.CartItems)
+                    {
+                        <li class="list-group-item d-flex justify-content-between lh-sm px-0">
+                            <div>
+                                <h6 class="my-0">@item.Product?.Name</h6>
+                                <small class="text-muted">Qty: @item.Quantity × RM @(item.Product?.Price.ToString("N2"))</small>
+                            </div>
+                            <span class="text-muted">RM @(((item.Product?.Price ?? 0) * item.Quantity).ToString("N2"))</span>
+                        </li>
+                    }
+                    <li class="list-group-item d-flex justify-content-between px-0 fs-5 fw-bold">
+                        <span>Total Payable</span>
+                        <span class="text-primary">RM @Model.TotalAmount.ToString("N2")</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        (() => {
+            const panels = {
+                Card: document.getElementById('cardFields'),
+                FPX: document.getElementById('fpxFields'),
+                EWallet: document.getElementById('walletFields'),
+                DemoPay: document.getElementById('demoPayFields')
+            };
+            function showSelectedPayment() {
+                const selected = document.querySelector('input[name="PaymentMethod"]:checked')?.value || 'Card';
+                Object.entries(panels).forEach(([name, panel]) =>
+                    panel.classList.toggle('d-none', name !== selected));
+            }
+            document.querySelectorAll('input[name="PaymentMethod"]').forEach(input =>
+                input.addEventListener('change', showSelectedPayment));
+            showSelectedPayment();
+        })();
+    </script>
+}

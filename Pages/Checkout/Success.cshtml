@@ -1,0 +1,25 @@
+@page
+@{
+    ViewData["Title"] = "Order Received";
+    var orderId = Request.Query["orderId"];
+    var method = Request.Query["method"];
+}
+
+<div class="container py-5 text-center">
+    <div class="card border-0 shadow-sm p-5 mx-auto" style="max-width: 550px;">
+        <i class="bi bi-check-circle-fill text-success display-1 mb-3"></i>
+        <h2 class="fw-bold">Order Received!</h2>
+        <p class="text-muted fs-5">Your order <strong>#@orderId</strong> has been placed successfully.</p>
+        @if (!string.IsNullOrWhiteSpace(method))
+        {
+            <div class="alert alert-success mt-3 mb-0">
+                <i class="bi bi-check-circle me-1"></i>
+                Demo @method payment completed. No real money was charged.
+            </div>
+        }
+        <div class="d-flex justify-content-center gap-3 mt-4">
+            <a asp-page="/Buyer/Orders/Index" class="btn btn-primary">View My Orders</a>
+            <a asp-page="/Index" class="btn btn-outline-secondary">Continue Shopping</a>
+        </div>
+    </div>
+</div>
